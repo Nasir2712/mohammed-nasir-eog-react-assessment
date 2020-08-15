@@ -11,14 +11,14 @@ import { makeStyles } from '@material-ui/core/styles';
 const useStyles = makeStyles({
   root: {
     display: 'flex',
-    margin: '10px'
+    margin: '10px',
   },
   grow: {
     flexGrow: 1,
   },
   selectWidth: {
-      width: '50%'
-  }
+    width: '50%',
+  },
 });
 
 const query = `
@@ -38,12 +38,13 @@ export default () => {
 const SelectMetrics = () => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const { metrics } = useSelector((state: IState) => state.metrics);
+  const { selectedMetrics, metrics } = useSelector((state: IState) => state.metrics);
 
   const [result] = useQuery({
     query,
   });
   const { fetching, data, error } = result;
+
   useEffect(() => {
     if (error) {
       dispatch(actions.metricsApiErrorReceived({ error: error.message }));
@@ -56,12 +57,17 @@ const SelectMetrics = () => {
 
   if (fetching) return <LinearProgress />;
 
+  const handleChange = (values: any) => {
+    dispatch(actions.metricsSelected({ selectedMetrics: values }));
+  };
   return (
     <div className={classes.root}>
       <div className={classes.grow}></div>
       <Select
         isMulti
         name="metrics"
+        value={selectedMetrics}
+        onChange={handleChange}
         options={metrics.map((metric: string) => {
           return {
             value: metric,

@@ -4,12 +4,17 @@ export type Metrics = {
   metrics: [];
 };
 
+export type SelectedMetrics = {
+  selectedMetrics: [],
+}
+
 export type ApiErrorAction = {
   error: string;
 };
 
 const initialState = {
   metrics: [],
+  selectedMetrics: [],
 };
 
 const slice = createSlice({
@@ -21,6 +26,11 @@ const slice = createSlice({
       state.metrics = metrics;
     },
     metricsApiErrorReceived: (state, action: PayloadAction<ApiErrorAction>) => state,
+    metricsSelected: (state, action: PayloadAction<SelectedMetrics>) => {
+        const { selectedMetrics } = action.payload;
+        const checkNull = selectedMetrics === null ? [] : selectedMetrics
+        state.selectedMetrics = checkNull;
+      },
   },
 });
 

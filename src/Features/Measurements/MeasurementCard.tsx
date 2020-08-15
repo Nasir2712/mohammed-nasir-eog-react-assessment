@@ -6,7 +6,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import { Provider, useQuery } from 'urql';
 import { useDispatch } from 'react-redux';
 import { actions } from './reducer';
-import { LinearProgress, Grid } from '@material-ui/core';
+import { LinearProgress } from '@material-ui/core';
 import { client } from '../Weather/Weather';
 import MeasurementValueSubscription from './MeasurementValueSubscription';
 

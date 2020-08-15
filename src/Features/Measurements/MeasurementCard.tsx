@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { actions } from './reducer';
 import { LinearProgress } from '@material-ui/core';
 import { client } from '../Weather/Weather';
+import MeasurementValueSubscription from './MeasurementValueSubscription';
 
 const useStyles = makeStyles({
   card: {
@@ -75,6 +76,7 @@ const MeasurementCard = (props: IProps) => {
     <Card className={classes.card}>
       <CardContent>
           <Typography variant="h6">{measurements.length > 0 ? measurements[0].metric : ''}</Typography>
+          <MeasurementValueSubscription metricName={selectedMetric.value}/>
       </CardContent>
     </Card>
   );

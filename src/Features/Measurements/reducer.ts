@@ -1,27 +1,60 @@
 import { createSlice, PayloadAction } from 'redux-starter-kit';
-
+import _ from 'lodash';
 
 export type ApiErrorAction = {
   error: string;
 };
 
-type Measurements = {
-    measurements: any[]
+interface SelectedMeasurement {
+  measurement: Measurement;
+  selectedMetric: SelectedMetric;
+};
+
+export interface Measurements {
+  measurements: [Measurement];
+};
+
+export interface SelectedMetric {
+  value: string;
+  label: string;
+};
+
+export interface Measurement {
+  value: number;
+  metric: string;
+  at: number;
+  unit: string;
+};
+
+export interface IData {
+  metric: string;
+  measurements: [Measurement];
+};
+
+interface MeasurementsState {
+  measurements: IData[]
 }
 
-const initialState = {
-  measurements: [] as any[],
+const initialState: MeasurementsState = {
+  measurements: [],
 };
 
 const slice = createSlice({
   name: 'metrics',
   initialState,
   reducers: {
-    measurementsDataReceived: (state, action: PayloadAction<Measurements>) => {
-      const { measurements } = action.payload;
-      state.measurements = measurements;
+    measurementsDataReceived: (state, action: PayloadAction<[IData]>) => {
+      state.measurements = action.payload;
     },
-    measurementsApiErrorReceived: (state, action: PayloadAction<ApiErrorAction>) => state,
+    measurementsApiErrorReceived: (state, _action: PayloadAction<ApiErrorAction>) => state,
+    subscribedMeasurementDataReceived: (state, action: PayloadAction<SelectedMeasurement>) => {
+      const { measurement, selectedMetric } = action.payload;
+      let selectedMeasurement = _.find(state.measurements, { metric: selectedMetric.value });
+      if (selectedMeasurement) {
+        selectedMeasurement.measurements.push(measurement);
+        state.measurements.map(_measurement => selectedMeasurement);
+      }
+    },
   },
 });
 

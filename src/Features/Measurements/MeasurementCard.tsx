@@ -1,43 +1,48 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Card from '@material-ui/core/Card';
 import Typography from '@material-ui/core/Typography';
 import CardContent from '@material-ui/core/CardContent';
 import { makeStyles } from '@material-ui/core/styles';
-import { Provider, useQuery } from 'urql';
+import { actions, Measurement, SelectedMetric } from './reducer';
+import { SubscriptionClient } from 'subscriptions-transport-ws';
+import { Client, defaultExchanges, subscriptionExchange, Provider, useSubscription } from 'urql';
 import { useDispatch } from 'react-redux';
-import { actions } from './reducer';
-import { LinearProgress } from '@material-ui/core';
-import { client } from '../Weather/Weather';
-import MeasurementValueSubscription from './MeasurementValueSubscription';
+import _ from 'lodash';
 
 const useStyles = makeStyles({
   card: {
     margin: '10px 10px',
+    backgroundColor: 'rgb(226,231,238)',
   },
 });
 
-export type SelectedMetric = {
-  value: string;
-  label: string;
-};
+const subscriptionClient = new SubscriptionClient('wss://react.eogresources.com/graphql', { reconnect: true });
+const client = new Client({
+  url: 'https://react.eogresources.com/graphql',
+  exchanges: [
+    ...defaultExchanges,
+    subscriptionExchange({
+      forwardSubscription(operation) {
+        return subscriptionClient.request(operation);
+      },
+    }),
+  ],
+});
+
+const query = `
+subscription MeasurementSub {
+    newMeasurement {
+    metric
+    at
+    value
+    unit
+    }
+  }
+`;
 
 type IProps = {
   selectedMetric: SelectedMetric;
 };
-
-const query = `
-query($input: [MeasurementQuery]) {
-  getMultipleMeasurements(input: $input) {
-    metric
-    measurements {
-      at
-      value
-      metric
-      unit
-    }
-  }
-}
-`;
 
 export default (props: IProps) => {
   return (
@@ -49,33 +54,39 @@ export default (props: IProps) => {
 
 const MeasurementCard = (props: IProps) => {
   const classes = useStyles();
-  const { selectedMetric } = props;
   const dispatch = useDispatch();
-  const [measurements, setMeasurements] = useState<any[]>([]);
+  const { selectedMetric } = props;
 
-  const [result] = useQuery({
-    query,
-    variables: {
-      input: [{ metricName: selectedMetric.value, after: 1 }],
-    },
-  });
-  const { fetching, data, error } = result;
+  const [measurement, setMeasurement] = useState({ value: 0 });
+
+  const [result] = useSubscription({ query });
+  const { data, error } = result;
+
+  const debounceAction = useCallback(
+    _.debounce((newMeasurement: Measurement) => {
+      dispatch(actions.subscribedMeasurementDataReceived({ measurement: newMeasurement, selectedMetric }));
+    }, 1100),
+    [],
+  );
+
   useEffect(() => {
     if (error) {
       dispatch(actions.measurementsApiErrorReceived({ error: error.message }));
       return;
     }
     if (!data) return;
-    const { getMultipleMeasurements } = data;
-    setMeasurements(getMultipleMeasurements);
-  }, [dispatch, data, error]);
+    const { newMeasurement } = data;
+    if (selectedMetric.value === newMeasurement.metric) {
+      setMeasurement(newMeasurement);
+      debounceAction(newMeasurement); // wait for 1s before dispatching another action
+    }
+  }, [dispatch, data, error, selectedMetric, debounceAction]);
 
-  if (fetching) return <LinearProgress />;
   return (
     <Card className={classes.card}>
       <CardContent>
-        <Typography variant="h6">{measurements.length > 0 ? measurements[0].metric : ''}</Typography>
-        <MeasurementValueSubscription metricName={selectedMetric.value} />
+        <Typography variant="h6">{selectedMetric.value}</Typography>
+        <Typography variant="h3">{measurement && measurement.value}</Typography>
       </CardContent>
     </Card>
   );

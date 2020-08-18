@@ -52,13 +52,13 @@ const SelectMetrics = () => {
     }
     if (!data) return;
     const { getMetrics } = data;
-    dispatch(actions.metricsDataRecevied({ metrics: getMetrics }));
+    dispatch(actions.metricsDataRecevied(getMetrics));
   }, [dispatch, data, error]);
 
   if (fetching) return <LinearProgress />;
 
   const handleChange = (values: any) => {
-    dispatch(actions.metricsSelected({ selectedMetrics: values }));
+    dispatch(actions.metricsSelected(values));
   };
   return (
     <div className={classes.root}>

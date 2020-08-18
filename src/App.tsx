@@ -8,7 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Header from './components/Header';
 import Wrapper from './components/Wrapper';
 import SelectMetrics from './Features/SelectMetrics/SelectMetrics';
-import MetricWrapper from './components/MetricWrapper';
+import MetricWrapper from './Features/Measurements/MetricWrapper';
 
 const store = createStore();
 const theme = createMuiTheme({
@@ -19,9 +19,7 @@ const theme = createMuiTheme({
     secondary: {
       main: 'rgb(197,208,222)',
     },
-    background: {
-      default: 'rgb(226,231,238)',
-    },
+    
   },
 });
 
